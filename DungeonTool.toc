@@ -1,0 +1,12 @@
+## Interface: 80000
+## Title: DungeonTool
+## Version: 1.0
+## Author: Gkane
+## SavedVariables: DTDB
+
+embeds.xml
+
+DTCore.lua
+DTLayout.lua
+DTFunc.lua
+DTRoster.lua
