@@ -1,0 +1,1526 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"hi",
+				"hideOnFight"
+			],
+			[
+				"Other",
+				"Other"
+			],
+			[
+				"obj",
+				"objIcon"
+			],
+			[
+				"ob",
+				"objIcon"
+			],
+			[
+				"DTFrmMain",
+				"DTFrmMainTooltip"
+			],
+			[
+				"DTFrm",
+				"DTFrmMainTooltip"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "DTCore.lua",
+			"settings":
+			{
+				"buffer_size": 2993,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "-- Author      : Garbis\n-- Create Date : 7/27/2018 5:49:26 PM\n-- Functions\n\n\n-- Function: Change Texture\n-- @objTex: name of the Tex-object object that should change.\n-- @color: colors[gray/yellow/green/red] or custom texture \"\\\\interface\\\\blah\"\n-- @state: 1: normal, 2: hover, 3: pushed\n-- @objIcon: name of the Icon object \nfunction changeTexture(objTex, objIcon, color, state)\n    local colors = {\n        gray = \"Interface\\\\COMMON\\\\Indicator-Gray\",\n        yellow = \"Interface\\\\COMMON\\\\Indicator-Yellow\",\n        green = \"Interface\\\\COMMON\\\\Indicator-Green\",\n        red = \"Interface\\\\COMMON\\\\Indicator-Red\"\n    }\n\n    if colors[color] == nil then\n        texture = color\n    else\n        texture = colors[color]\n    end\n\n    if objTex and objIcon then\n    \tif state == \"normal\" then\n    \t\tobjTex:SetTexture(texture)\n    \t\tobjTex:SetAllPoints()\n    \t\t--objTex:SetInside()\n    \t\tobjIcon:SetNormalTexture(objTex)\n    \telseif state == \"hover\" then\n    \t\tobjTex:SetTexture(texture)\n    \t\tobjTex:SetAllPoints()\n    \t\t--objTex:SetInside()\n    \t\tobjIcon:SetHighlightTexture(objTex)\n    \telseif state == \"pushed\" then\n    \t\tobjTex:SetTexture(texture)\n    \t\tobjTex:SetAllPoints()\n    \t\tobjIcon:SetPushedTexture(objTex)\t\n    \tend\n    end\nend\n\n-- Function: Wipe a table.\n-- @tbl: name of the table to be cleared\nfunction rosterTabClear(tbl)\n    for k in pairs(tbl) do\n        party_units[k] = nil\n    end\nend\n\n-- Function: Insert unit to a table.\n-- @tbl: name of the table to add to\n-- @unit: unit to add to table\nfunction rosterAddUnit(tbl, unit)\n    table.insert(tbl, unit)\nend\n\n-- Function: Update a unit table.\n-- @\nfunction rosterTabUpdate(tbl)\n    if IsInRaid() == false then\n        for i=1, GetNumSubgroupMembers() + 1 do\n         repeat\n           if i == 1 then\n            playerName, playerRealm = UnitName(\"player\")\n                if playerRealm == nil or playerRealm == \"\" then\n                    playerRealm = \"*\"\n                end\n            rosterAddUnit(tbl, { name = playerName, realm = playerRealm })\n            break\n           end\n            s = i-1\n            n = (\"party%d\"):format(s)\n            playerName, playerRealm = UnitName(n)\n            if playerRealm == nil or playerRealm == \"\" then\n                    playerRealm = \"*\"\n            end\n            rosterAddUnit(tbl, { name = playerName, realm = playerRealm })\n         until true\n        end\n    end\nend\n\n\n-- Function: Update Roster-Icons\n-- @\nfunction rosterIconUpdate()\n    -- Hide All\n    for i=1, 5 do\n     icons[i]:Hide()\n    end\n\n    -- Show according to party_units\n    for k in pairs(party_units) do\n        icons[k]:Show()\n    end    \nend\n\n-- Function: Perform Readycheck\n-- @\nfunction fReadycheck()\n    if IsInGroup() == false then\n        print(\"|cFF00FFFF[|cFF006565D|cFFFFFF00Tools|cFF00FFFF]|r Not in a Group.\")\n    else\n        if UnitIsGroupLeader(\"player\") == false then\n            print(\"|cFF00FFFF[|cFF006565D|cFFFFFF00Tools|cFF00FFFF]|r You're not the leader.\")\n        else\n            print(\"|cFF00FFFF[|cFF006565D|cFFFFFF00Tools|cFF00FFFF]|r Starting a Readycheck!\")\n            DoReadyCheck()\n        end\n    end\nend\n\n\n-- Function: Perform Pulltimer\n-- @\nfunction fPulltimer()\n    if IsInGroup() == true then\n        print(\"|cFF00FFFF[|cFF006565D|cFFFFFF00Tools|cFF00FFFF]|r Pulling in: \" .. DungeonTool.db.global.pulltimer .. \"s\")\n        timer = tonumber(DungeonTool.db.global.pulltimer)\n        for i=0, timer do\n            repeat\n                if i == timer then\n                    if IsInGroup(LE_PARTY_CATEGORY_INSTANCE) == true then\n                        C_Timer.After(timer, function() \n                            SendChatMessage(\"[DTools] Pulling!\" ,\"INSTANCE_CHAT\")\n                        end)\n                    else\n                        C_Timer.After(timer, function() \n                            SendChatMessage(\"[DTools] Pulling!\" ,\"PARTY\")\n                        end)\n                    end\n                break\n                end\n                    if IsInGroup(LE_PARTY_CATEGORY_INSTANCE) == true then\n                        C_Timer.After(i, function() \n                            local ct = date(\"*t\").hour .. \":\" .. date(\"*t\").min .. \":\" .. date(\"*t\").sec\n                            SendChatMessage(\"[DTools] Pull in: \" ..  DungeonTool.db.global.pulltimer-i,\"INSTANCE_CHAT\")\n                        end) \n                    else\n                        C_Timer.After(i, function() \n                            local ct = date(\"*t\").hour .. \":\" .. date(\"*t\").min .. \":\" .. date(\"*t\").sec\n                            SendChatMessage(\"[DTools] Pull in: \" ..  DungeonTool.db.global.pulltimer-i,\"PARTY\")\n                        end) \n                    end\n            until true\n        end\n    else \n        print(\"|cFF00FFFF[|cFF006565D|cFFFFFF00Tools|cFF00FFFF]|r Not in a Group.\")\n    end\nend\n\n-- Function: DTMenu\n-- @\nfunction DungeonTool:DTMenu()\n    if DTMinimapHide then\n        DTIcon:Show(\"DTLDBObjectNew\")\n        DungeonTool.global.frame.hide = false\n    else\n        DTIcon:Hide(\"DTLDBObjectNew\")\n        DungeonTool.global.frame.hide = true\n    end\nend\n\n-- Function: Check Visibility Main Frame, turn on/off (Minimap Click)\n-- @\nfunction DTFrmMainVisible()\n    if DTFrmMain:IsVisible() then\n        DTFrmMain:Hide()\n        DungeonTool.db.global.frame.hide = true\n    else\n        DTFrmMain:Show()\n        DungeonTool.db.global.frame.hide = false\n    end\nend\n-- Function: Refresh DB\n-- @\nfunction updateDB(self, event, database)\n    db = database.profile;\n    LibStub(\"LibDBIcon-1.0\"):Refresh(\"AddonLDBObjectName\", self.db.global.LDBIconStorage);\nend\n\n-- Function: SlashHandler\n-- @\nfunction DTSlashHandler(msg)\n    \n    local _, _, command, options = string.find(msg, \"([%w%p]+)%s*(.*)$\");\n\n    if (command) then\n        command = string.lower(command);\n    end\n    if command == nil or command == \"\" then\n        print(\"|cFF00FFFF[|cFF006565D|cFFFFFF00Tools|cFF00FFFF]|r Available Commands:\")\n        print(\"|cFF00FFFF[|cFF006565D|cFFFFFF00Tools|cFF00FFFF]|r /dt toggle |cFFAFAFAFToggles visibility of DungeonTool frame.\")\n        print(\"|cFF00FFFF[|cFF006565D|cFFFFFF00Tools|cFF00FFFF]|r /dt minimap |cFFAFAFAFShows Minimap Icon.\")\n        print(\"|cFF00FFFF[|cFF006565D|cFFFFFF00Tools|cFF00FFFF]|r /dt save |cFFAFAFAFSaves the current location of the DungeonTool frame.\")\n        \n    elseif command == 'minimap' then\n        print(\"|cFF00FFFF[|cFF006565D|cFFFFFF00Tools|cFF00FFFF]|r Showing icon.\")\n        DTIcon:Show(\"DTLDBObjectNew\")\n        DungeonTool.db.global.icon.hide = false\n        \n    elseif command == 'toggle' then\n        print(\"|cFF00FFFF[|cFF006565D|cFFFFFF00Tools|cFF00FFFF]|r Toggling visibility.\")\n        DTFrmMainVisible()\n        \n    elseif command == 'save' then\n        print(\"|cFF00FFFF[|cFF006565D|cFFFFFF00Tools|cFF00FFFF]|r Saving location of DungeonTool frame.\")\n        DungeonTool.db.global.frame.point, DungeonTool.db.global.frame.relativeFrame, DungeonTool.db.global.frame.relativePoint, DungeonTool.db.global.frame.x, DungeonTool.db.global.frame.y = DTFrmMain:GetPoint()\n    end\n    \nend\n\n-- Function: Debug\n-- @\nfunction DTDebug(msg, timer)\n    if DungeonTool.db.global.debug ~= true then\n        return\n    end\n    \n    local ct = date(\"*t\").hour .. \":\" .. date(\"*t\").min .. \":\" .. date(\"*t\").sec\n    if timer then\n        print(\"[\" .. ct .. \"] \" .. msg)\n    else\n        print(msg)\n    end\nend\n\n-- Function: Editbox - On Focus Gained\n-- @\nfunction OnFocusGained(self)\n    DTFrmMainEditPulltimerOK:Show()\nend\n\n-- Function: Editbox - On Focus Lost\n-- @\nfunction OnFocusLost(self)\n    DTFrmMainEditPulltimerOK:Hide()\nend\n",
+			"file": "DTFunc.lua",
+			"file_size": 7868,
+			"file_write_time": 131774323121730507,
+			"settings":
+			{
+				"buffer_size": 7629,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "DTIcon.lua",
+			"settings":
+			{
+				"buffer_size": 74,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "DTLayout.lua",
+			"settings":
+			{
+				"buffer_size": 21867,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "## Interface: 80000\n## Title: DungeonTool\n## Version: 1.0\n## Author: Garbis\n## SavedVariables: DTDB\n\nembeds.xml\n\nDTCore.lua\nDTLayout.lua\nDTFunc.lua\nDTRoster.lua",
+			"file": "DungeonTool.toc",
+			"file_size": 170,
+			"file_write_time": 131772019192141593,
+			"settings":
+			{
+				"buffer_size": 160,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "embeds.xml",
+			"settings":
+			{
+				"buffer_size": 1330,
+				"line_ending": "Windows"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"git init",
+				"Git: Init"
+			],
+			[
+				"git",
+				"Git: Init"
+			],
+			[
+				"instal",
+				"Package Control: Install Package"
+			],
+			[
+				"package control",
+				"Package Control: Add Repository"
+			],
+			[
+				"remove",
+				"Package Control: Remove Package"
+			],
+			[
+				"remove pack",
+				"Package Control: Remove Package"
+			],
+			[
+				"pack",
+				"Package Control: Add Repository"
+			],
+			[
+				"key",
+				"Preferences: Key Bindings"
+			],
+			[
+				"setting",
+				"Preferences: Settings"
+			],
+			[
+				"formatlua",
+				"FormatLua: Format Lua code"
+			],
+			[
+				"settings",
+				"Preferences: Settings"
+			],
+			[
+				"prefer",
+				"Preferences: Settings"
+			],
+			[
+				"install pac",
+				"Package Control: Install Package"
+			],
+			[
+				"repos",
+				"Package Control: Add Repository"
+			]
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 116.0,
+		"history":
+		[
+			"format_lua",
+			"ls -las",
+			"ls"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+	],
+	"file_history":
+	[
+		"/C/Program Files (x86)/World of Warcraft/Interface/AddOns/DungeonTool/DTCore.lua",
+		"/C/Program Files (x86)/World of Warcraft/Interface/AddOns/DungeonTool/DTRoster.lua",
+		"/C/Program Files (x86)/World of Warcraft/Interface/AddOns/DungeonTool/DTIcon.lua",
+		"/C/Program Files (x86)/World of Warcraft/Interface/AddOns/DungeonTool/DTFunc.lua",
+		"/E/Google Drive/StipendienGesuch/Stipendien.txt",
+		"/C/Users/Garbis/Desktop/PrisonEscaper/DungeonCrawl/README.txt",
+		"/C/Users/Garbis/Desktop/LPC_Terrain_Attribution.txt",
+		"/C/Users/Garbis/Desktop/attribution.txt",
+		"/C/Users/Garbis/AppData/Local/Temp/Rar$DIa17212.41150/spritesheetInfo.txt",
+		"/C/Users/Garbis/AppData/Local/Temp/Rar$DIa632.23822/LICENSE.txt",
+		"/C/Users/Garbis/Desktop/DarkDays/config/fontlist.txt",
+		"/C/Users/Garbis/Desktop/DarkDays/config/fonts.json",
+		"/C/Users/Garbis/AppData/Local/Temp/Rar$DIa9408.11723/README.md",
+		"/C/Users/Garbis/Desktop/DarkDays/config/options.json",
+		"/C/Program Files (x86)/World of Warcraft/Interface/AddOns/DungeonTool/DTLayout.lua",
+		"/C/Program Files (x86)/World of Warcraft/WTF/Account/102295659#1/SavedVariables/DungeonTool.lua",
+		"/C/Program Files (x86)/World of Warcraft/Interface/AddOns/DungeonTool/embeds.xml",
+		"/C/Program Files (x86)/World of Warcraft/Interface/AddOns/test/BigWigs_Core/Core.lua",
+		"/C/Program Files (x86)/World of Warcraft/Interface/AddOns/DungeonTool/Libs/AceGUI-3.0/widgets/AceGUIWidget-MultiLineEditBox.lua",
+		"/C/Program Files (x86)/World of Warcraft/Interface/AddOns/DungeonTool/Libs/AceTimer-3.0/AceTimer-3.0.lua",
+		"/C/Users/Garbis/AppData/Roaming/Sublime Text 3/Packages/DocBlockr/README.md",
+		"/C/Users/Garbis/AppData/Roaming/Sublime Text 3/Packages/pygments/all/pygments/styles/monokai.py",
+		"/E/Google Drive/Projects/DungeonTool/DTCore.lua",
+		"/E/Google Drive/Projects/DungeonTool/DTFunc.lua",
+		"/E/Google Drive/Projects/DungeonTool/DTLayout.lua",
+		"/E/Google Drive/Projects/DungeonTool/DTRoster.lua",
+		"/C/Users/Garbis/AppData/Roaming/Sublime Text 3/Packages/FormatLua/README.md",
+		"/C/Users/Garbis/AppData/Roaming/Sublime Text 3/Packages/FormatLua/FormatLua.sublime-settings",
+		"/C/Users/Garbis/AppData/Roaming/Sublime Text 3/Packages/User/Package Control.sublime-settings",
+		"/E/Google Drive/Projects/DungeonTool/DungeonTool.wowproj",
+		"/C/Users/Garbis/Desktop/Stipendien.txt",
+		"/C/Users/Garbis/Desktop/NR Mutter.txt",
+		"/C/Users/Garbis/Desktop/Neues Textdokument (2).txt",
+		"/C/Users/Garbis/Desktop/Termin.txt",
+		"/C/Users/Garbis/Desktop/Dolmetscher.txt",
+		"/C/Users/Garbis/Desktop/Dienstarzt.txt",
+		"/C/Users/Garbis/Desktop/Neues Textdokument (3).txt",
+		"/C/Users/Garbis/Desktop/Neues Textdokument.txt",
+		"/C/Users/Garbis/Desktop/Neues Textdokument (5).txt",
+		"/C/Users/Garbis/Desktop/Neues Textdokument (4).txt",
+		"/C/Users/Garbis/Desktop/Fahrlehrer.txt"
+	],
+	"find":
+	{
+		"height": 28.0
+	},
+	"find_in_files":
+	{
+		"height": 117.0,
+		"where_history":
+		[
+			"C:\\Program Files (x86)\\World of Warcraft\\Interface\\AddOns\\DungeonTool,-Libs/*",
+			"C:\\Program Files (x86)\\World of Warcraft\\Interface\\AddOns\\DungeonTool,-Libs*",
+			"C:\\Program Files (x86)\\World of Warcraft\\Interface\\AddOns\\DungeonTool,-Libs",
+			"C:\\Program Files (x86)\\World of Warcraft\\Interface\\AddOns\\DungeonTool\\,-Libs",
+			"C:\\Program Files (x86)\\World of Warcraft\\Interface\\AddOns\\DungeonTool\\,-Lib",
+			"C:\\Program Files (x86)\\World of Warcraft\\Interface\\AddOns\\DungeonTool\\",
+			"C:\\Program Files (x86)\\World of Warcraft\\Interface\\AddOns\\test\\,-Lib",
+			"C:\\Program Files (x86)\\World of Warcraft\\Interface\\AddOns\\test\\,-Lib\\*",
+			"C:\\Program Files (x86)\\World of Warcraft\\Interface\\AddOns\\test\\",
+			"C:\\Program Files (x86)\\World of Warcraft\\Interface\\AddOns\\DungeonTool,-Libs/*",
+			"C:\\Program Files (x86)\\World of Warcraft\\Interface\\AddOns\\DungeonTool,-Libs",
+			"C:\\Program Files (x86)\\World of Warcraft\\Interface\\AddOns\\DungeonTool,Libs",
+			"C:\\Program Files (x86)\\World of Warcraft\\Interface\\AddOns\\DungeonTool",
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"Fr",
+			"Fri",
+			"not in a",
+			"interface\\\\",
+			"\\\\interface",
+			"rosterTabClear",
+			"^(.*)$",
+			"SendChatMessage(\"[DTools]: \" .. party_units[",
+			"SendChatMessage(party_units[",
+			"ready?",
+			"ready",
+			"pulltimer",
+			"SendAddonMessage",
+			"slash",
+			"visibi",
+			"print",
+			"tool",
+			"etButtonState(\"normal\", false)",
+			"\"gray\", \"normal\")",
+			"\"green\", \"normal\")",
+			"DTFrmMainIcon3",
+			"realm = ",
+			".realm",
+			"SetInside",
+			"rosterIconUpdate",
+			"DTFrmMainVisible",
+			"DTCreateFrame",
+			"changeTexture",
+			"iconsTex",
+			"^(.*)$",
+			"fReadycheck",
+			"565Dungeon",
+			"myButton",
+			" \"green\", \"pushed\")",
+			" \"yellow\", \"hover\")",
+			"party_units[5]",
+			"party_units[1]",
+			"rosterAddUnit",
+			"DTFrmMainIcon4",
+			"DTFrmMainIcon3",
+			"DTFrmMainIcon2",
+			"\"\"",
+			"local DTFrmMainIcon",
+			"\"Error\"",
+			"party_units",
+			"setOw",
+			"tip:sette",
+			"-- pla",
+			"GameTooltip:AddLine(\"Click for message.\")",
+			"GameTooltip:AddLine(\"Debuff Tooltip line 2!\")",
+			"GameTooltip:SetText",
+			"left",
+			"EditPulltimer",
+			"events",
+			"register_unit",
+			"75715e",
+			"font",
+			"comment",
+			"/",
+			"\\\\",
+			"DTFrmMain",
+			"CreateFrame",
+			"()\n",
+			")\n"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": true,
+		"replace_history":
+		[
+			"SendChatMessage(\"[DTools] \" .. party_units[",
+			"SendChatMessage(\"[DTools]: \" .. party_units[",
+			"etButtonState(\"normal\", true)",
+			"DTFrmMainIcon2",
+			"565D",
+			" \"gray\", \"pushed\")",
+			" \"gray\", \"hover\")",
+			"DTFrmMainIcon5",
+			"DTFrmMainIcon4",
+			"DTFrmMainIcon3",
+			"",
+			"DTFrmMainIcon",
+			"print(\"Error\")",
+			"GameTooltip:AddLine(\"Click for message.\")"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 0,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "DTCore.lua",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2993,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								214,
+								214
+							]
+						],
+						"settings":
+						{
+							"bracket_highlighter.busy": false,
+							"bracket_highlighter.clone": -1,
+							"bracket_highlighter.clone_locations":
+							{
+								"close":
+								{
+								},
+								"icon":
+								{
+								},
+								"open":
+								{
+								},
+								"unmatched":
+								{
+								}
+							},
+							"bracket_highlighter.clone_regions":
+							[
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content"
+							],
+							"bracket_highlighter.locations":
+							{
+								"close":
+								{
+								},
+								"icon":
+								{
+								},
+								"open":
+								{
+								},
+								"unmatched":
+								{
+								}
+							},
+							"bracket_highlighter.regions":
+							[
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content"
+							],
+							"syntax": "Packages/WoWDevelopment/WoW Lua.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "DTFunc.lua",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 7629,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								23,
+								23
+							]
+						],
+						"settings":
+						{
+							"bracket_highlighter.busy": false,
+							"bracket_highlighter.clone": -1,
+							"bracket_highlighter.clone_locations":
+							{
+								"close":
+								{
+								},
+								"icon":
+								{
+								},
+								"open":
+								{
+								},
+								"unmatched":
+								{
+								}
+							},
+							"bracket_highlighter.clone_regions":
+							[
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content"
+							],
+							"bracket_highlighter.locations":
+							{
+								"close":
+								{
+								},
+								"icon":
+								{
+								},
+								"open":
+								{
+								},
+								"unmatched":
+								{
+								}
+							},
+							"bracket_highlighter.regions":
+							[
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content"
+							],
+							"syntax": "Packages/WoWDevelopment/WoW Lua.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "DTIcon.lua",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 74,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								23,
+								23
+							]
+						],
+						"settings":
+						{
+							"bracket_highlighter.busy": false,
+							"bracket_highlighter.clone": -1,
+							"bracket_highlighter.clone_locations":
+							{
+								"close":
+								{
+								},
+								"icon":
+								{
+								},
+								"open":
+								{
+								},
+								"unmatched":
+								{
+								}
+							},
+							"bracket_highlighter.clone_regions":
+							[
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content"
+							],
+							"bracket_highlighter.locations":
+							{
+								"close":
+								{
+								},
+								"icon":
+								{
+								},
+								"open":
+								{
+								},
+								"unmatched":
+								{
+								}
+							},
+							"bracket_highlighter.regions":
+							[
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content"
+							],
+							"syntax": "Packages/WoWDevelopment/WoW Lua.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "DTLayout.lua",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 21867,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								23,
+								23
+							]
+						],
+						"settings":
+						{
+							"bracket_highlighter.busy": false,
+							"bracket_highlighter.clone": -1,
+							"bracket_highlighter.clone_locations":
+							{
+								"close":
+								{
+								},
+								"icon":
+								{
+								},
+								"open":
+								{
+								},
+								"unmatched":
+								{
+								}
+							},
+							"bracket_highlighter.clone_regions":
+							[
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content"
+							],
+							"bracket_highlighter.locations":
+							{
+								"close":
+								{
+								},
+								"icon":
+								{
+								},
+								"open":
+								{
+								},
+								"unmatched":
+								{
+								}
+							},
+							"bracket_highlighter.regions":
+							[
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content"
+							],
+							"syntax": "Packages/WoWDevelopment/WoW Lua.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "DungeonTool.toc",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 160,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								75,
+								75
+							]
+						],
+						"settings":
+						{
+							"bracket_highlighter.busy": false,
+							"bracket_highlighter.clone": -1,
+							"bracket_highlighter.clone_locations":
+							{
+								"close":
+								{
+								},
+								"icon":
+								{
+								},
+								"open":
+								{
+								},
+								"unmatched":
+								{
+								}
+							},
+							"bracket_highlighter.clone_regions":
+							[
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content"
+							],
+							"bracket_highlighter.locations":
+							{
+								"close":
+								{
+								},
+								"icon":
+								{
+								},
+								"open":
+								{
+								},
+								"unmatched":
+								{
+								}
+							},
+							"bracket_highlighter.regions":
+							[
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content"
+							],
+							"syntax": "Packages/WoWDevelopment/WoW TOC.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "embeds.xml",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 1330,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"bracket_highlighter.busy": false,
+							"bracket_highlighter.clone": 27,
+							"bracket_highlighter.clone_locations":
+							{
+								"close":
+								{
+									"1":
+									[
+										1326,
+										1328
+									]
+								},
+								"icon":
+								{
+									"1":
+									[
+										"Packages/BracketHighlighter/icons/tag.png",
+										"region.orangish"
+									]
+								},
+								"open":
+								{
+									"1":
+									[
+										1,
+										3
+									]
+								},
+								"unmatched":
+								{
+								}
+							},
+							"bracket_highlighter.clone_regions":
+							[
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content"
+							],
+							"bracket_highlighter.locations":
+							{
+								"close":
+								{
+								},
+								"icon":
+								{
+								},
+								"open":
+								{
+								},
+								"unmatched":
+								{
+								}
+							},
+							"bracket_highlighter.regions":
+							[
+								"bh_square",
+								"bh_square_center",
+								"bh_square_open",
+								"bh_square_close",
+								"bh_square_content",
+								"bh_default",
+								"bh_default_center",
+								"bh_default_open",
+								"bh_default_close",
+								"bh_default_content",
+								"bh_angle",
+								"bh_angle_center",
+								"bh_angle_open",
+								"bh_angle_close",
+								"bh_angle_content",
+								"bh_single_quote",
+								"bh_single_quote_center",
+								"bh_single_quote_open",
+								"bh_single_quote_close",
+								"bh_single_quote_content",
+								"bh_round",
+								"bh_round_center",
+								"bh_round_open",
+								"bh_round_close",
+								"bh_round_content",
+								"bh_tag",
+								"bh_tag_center",
+								"bh_tag_open",
+								"bh_tag_close",
+								"bh_tag_content",
+								"bh_double_quote",
+								"bh_double_quote_center",
+								"bh_double_quote_open",
+								"bh_double_quote_close",
+								"bh_double_quote_content",
+								"bh_regex",
+								"bh_regex_center",
+								"bh_regex_open",
+								"bh_regex_close",
+								"bh_regex_content",
+								"bh_c_define",
+								"bh_c_define_center",
+								"bh_c_define_open",
+								"bh_c_define_close",
+								"bh_c_define_content",
+								"bh_curly",
+								"bh_curly_center",
+								"bh_curly_open",
+								"bh_curly_close",
+								"bh_curly_content",
+								"bh_unmatched",
+								"bh_unmatched_center",
+								"bh_unmatched_open",
+								"bh_unmatched_close",
+								"bh_unmatched_content"
+							],
+							"syntax": "Packages/XML/XML.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 28.0
+	},
+	"input":
+	{
+		"height": 45.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 157.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"project": "DungeonTool.sublime-project",
+	"replace":
+	{
+		"height": 52.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 392.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 592.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 441.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
